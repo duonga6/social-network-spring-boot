@@ -1,7 +1,7 @@
 package com.socialnetwork.service.impl;
 
 import com.socialnetwork.model.dto.ResponseModel;
-import com.socialnetwork.model.dto.Token;
+import com.socialnetwork.model.dto.auth.Token;
 import com.socialnetwork.model.dto.auth.Login;
 import com.socialnetwork.model.dto.auth.Register;
 import com.socialnetwork.model.entity.Role;

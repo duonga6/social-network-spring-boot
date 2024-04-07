@@ -2,6 +2,8 @@ package com.socialnetwork.controller;
 
 import com.socialnetwork.model.dto.auth.Login;
 import com.socialnetwork.model.dto.auth.Register;
+import com.socialnetwork.model.entity.User;
+import com.socialnetwork.repository.UserRepository;
 import com.socialnetwork.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController extends BaseController {
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Login request) {
@@ -34,7 +37,8 @@ public class AuthController extends BaseController {
 
     @GetMapping("/test_admin")
     public ResponseEntity<?> testAdmin() {
-        return ResponseEntity.ok(this.getUserId());
+        User user = userRepository.findById(this.getUserId()).orElseThrow();
+        return ResponseEntity.ok(this.getUserId() + " Is admin: " + user.isAdmin());
     }
 
     @GetMapping("/test_user")

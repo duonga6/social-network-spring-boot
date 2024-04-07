@@ -7,6 +7,7 @@ import com.socialnetwork.model.dto.users.UserDTO;
 import com.socialnetwork.model.entity.User;
 import com.socialnetwork.repository.UserRepository;
 import com.socialnetwork.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,11 +44,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseModel<UserDTO> getById(UUID id) {
-        Optional<User> user = userRepository.findById(id);
-
-        return user.isPresent() ?
-                ResponseModel.ok(mapper.map(user, UserDTO.class), "Get user success") :
-                ResponseModel.notFound("User");
+        User user = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User"));
+        return ResponseModel.ok(mapper.map(user, UserDTO.class), "Get user success");
     }
 
     @Override
@@ -56,13 +54,8 @@ public class UserServiceImpl implements UserService {
             return ResponseModel.badRequest("Access denied");
         }
 
-        Optional<User> userOptional = userRepository.findById(id);
+        User user = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User"));
 
-        if (userOptional.isEmpty()) {
-            return ResponseModel.notFound("User");
-        }
-
-        User user = userOptional.get();
         mapper.map(request, user);
         User updatedUser = userRepository.save(user);
 
@@ -75,13 +68,9 @@ public class UserServiceImpl implements UserService {
             return ResponseModel.badRequest("Access denied");
         }
 
-        Optional<User> userOptional = userRepository.findById(id);
+        User user = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User"));
 
-        if (userOptional.isEmpty()) {
-            return ResponseModel.notFound("User");
-        }
-
-        userRepository.delete(userOptional.get());
+        userRepository.delete(user);
         return ResponseModel.noContent();
     }
 }

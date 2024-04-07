@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -14,11 +15,20 @@ import java.util.Set;
 @Table(name = "Posts")
 public class Post extends BaseEntity {
     private String content;
-    private String images;
+
+    @ManyToOne
+    @JoinColumn(name = "userId", nullable = false)
+    private User user;
 
     @OneToMany(mappedBy = "post")
     private Set<PostLike> postLiked;
 
-    @OneToMany(mappedBy = "post")
-    private Set<PostImage> postImages;
+    @OneToMany(mappedBy = "post", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostImage> postImages;
+
+    public Post(String content, User user, List<PostImage> postImages) {
+        this.content = content;
+        this.user = user;
+        this.postImages = postImages;
+    }
 }

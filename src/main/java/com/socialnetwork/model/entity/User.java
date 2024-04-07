@@ -9,10 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -55,6 +52,9 @@ public class User extends BaseEntity implements UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<UserRole> listRoles;
 
+    @OneToMany(mappedBy = "user")
+    private Set<Post> posts;
+
     public User(UUID uuid, String firstName, String lastName, String password, String email, String avatarUrl, Date dateOfBirth, String address, String job, String phoneNumber) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -80,11 +80,14 @@ public class User extends BaseEntity implements UserDetails {
         this.phoneNumber = phoneNumber;
     }
 
-
+    public boolean isAdmin() {
+        Collection<? extends GrantedAuthority> listRoles = getAuthorities();
+        return listRoles.stream().anyMatch(role -> role.getAuthority().equals(RoleEnum.ROLE_ADMIN.name()));
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return  listRoles.stream()
+        return listRoles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRole().getRoleName().name()))
                 .collect(Collectors.toList());
     }

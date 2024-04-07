@@ -1,8 +1,7 @@
 package com.socialnetwork.config;
 
 import com.socialnetwork.model.dto.ResponseModel;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
-public class ValidationExceptionHandler {
+public class ExceptionHandlers {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -27,5 +26,11 @@ public class ValidationExceptionHandler {
         });
 
         return ResponseModel.badRequest("Invalid data", errors);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseModel<?> handleNotFoundEntityException(EntityNotFoundException ex) {
+        return ResponseModel.notFound(ex.getMessage());
     }
 }

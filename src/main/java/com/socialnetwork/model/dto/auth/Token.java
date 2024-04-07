@@ -1,4 +1,4 @@
-package com.socialnetwork.model.dto;
+package com.socialnetwork.model.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
