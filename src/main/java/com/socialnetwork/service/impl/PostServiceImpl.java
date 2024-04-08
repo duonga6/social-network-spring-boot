@@ -10,14 +10,18 @@ import com.socialnetwork.repository.PostRepository;
 import com.socialnetwork.repository.UserRepository;
 import com.socialnetwork.service.PostService;
 import jakarta.persistence.EntityNotFoundException;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -53,21 +57,29 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public ResponseModel<PostDTO> createPost(UUID requestUserId, Post request) {
-        User user = userRepository.findById(requestUserId).orElseThrow(() -> new EntityNotFoundException("User"));
-
-        if (request.getContent().isEmpty() && request.getPostImages().isEmpty()) {
+        if (StringUtils.isBlank(request.getContent()) && CollectionUtils.isEmpty(request.getPostImages())) {
             return ResponseModel.badRequest("Post must have content or images");
         }
 
-        Post newPost = postRepository.save(
-                new Post(request.getContent(), user, request.getPostImages())
-        );
+        User user = userRepository.findById(requestUserId).orElseThrow(() -> new EntityNotFoundException("User"));
 
-        return ResponseModel.created(mapper.map(newPost, PostDTO.class));
+
+        Post newPost = new Post(request.getContent(), user, request.getPostImages());
+        newPost.getPostImages().forEach(image -> {
+            image.setPost(newPost);
+        });
+
+        Post postSaved = postRepository.save(newPost);
+
+        return ResponseModel.created(mapper.map(postSaved, PostDTO.class));
     }
 
     @Override
     public ResponseModel<PostDTO> updatePost(UUID requestUserId, UUID postId, Post request) {
+        if (StringUtils.isBlank(request.getContent()) && CollectionUtils.isEmpty(request.getPostImages())) {
+            return ResponseModel.badRequest("Post must have content or images");
+        }
+
         Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("Post"));
 
         if (!post.getUser().getId().equals(requestUserId)) {
@@ -75,20 +87,25 @@ public class PostServiceImpl implements PostService {
         }
 
         List<PostImage> currentImages = post.getPostImages();
-        List<PostImage> updatedImages = request.getPostImages();
+        List<PostImage> updatedImages = request.getPostImages() != null ? request.getPostImages() : Collections.emptyList();
 
-        currentImages.removeIf(item -> !updatedImages.contains(item));
+        List<UUID> updatedImagesId = updatedImages.stream().map(PostImage::getId).toList();
+        currentImages.removeIf(item -> !updatedImagesId.contains(item.getId()));
+
+        List<UUID> currentImagesId = currentImages.stream().map(PostImage::getId).toList();
 
         for (PostImage updatedImage: updatedImages) {
-            int index = currentImages.indexOf(updatedImage);
+            int index = currentImagesId.indexOf(updatedImage.getId());
             if (index != - 1) {
-                currentImages.set(index, updatedImage);
+                currentImages
+                        .get(index)
+                        .setUrl(updatedImage.getUrl());
             } else {
+                updatedImage.setPost(post);
                 currentImages.add(updatedImage);
             }
         }
 
-        post.setPostImages(currentImages);
         post.setContent(request.getContent());
 
         Post updatedPost = postRepository.save(post);
@@ -107,6 +124,6 @@ public class PostServiceImpl implements PostService {
 
         postRepository.delete(post);
 
-        return ResponseModel.noContent();
+        return ResponseModel.ok(null, "Delete post success");
     }
 }

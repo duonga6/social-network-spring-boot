@@ -23,7 +23,7 @@ public class Post extends BaseEntity {
     @OneToMany(mappedBy = "post")
     private Set<PostLike> postLiked;
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> postImages;
 
     public Post(String content, User user, List<PostImage> postImages) {

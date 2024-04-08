@@ -12,18 +12,24 @@ import java.util.Date;
 import java.util.UUID;
 
 @Getter
-@Setter
 @MappedSuperclass
 public class BaseEntity {
+    @Setter
     @Id
     @JdbcTypeCode(Types.VARCHAR)
     private UUID id = UUID.randomUUID();
 
     @Column(nullable = false)
-    private Date createdAt = new Date();
+    private Date createdAt;
 
     @Column(nullable = false)
-    private Date updatedAt = new Date();
+    private Date updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
+    }
 
     @PreUpdate
     public void preUpdate() {
