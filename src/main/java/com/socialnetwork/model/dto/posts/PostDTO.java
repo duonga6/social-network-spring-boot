@@ -1,6 +1,7 @@
 package com.socialnetwork.model.dto.posts;
 
 import com.socialnetwork.model.dto.postImages.PostImageDTO;
+import com.socialnetwork.model.dto.users.SimpleUserDTO;
 import com.socialnetwork.model.dto.users.UserDTO;
 import com.socialnetwork.model.entity.PostImage;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,6 @@ public class PostDTO {
     private UUID id;
     private String content;
     private List<PostImageDTO> postImages;
-    private UserDTO user;
+    private SimpleUserDTO user;
     private Date createdAt;
 }
